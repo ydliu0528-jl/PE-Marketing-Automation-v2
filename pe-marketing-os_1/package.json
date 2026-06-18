@@ -1,0 +1,7 @@
+{
+  "name": "pe-marketing-os",
+  "version": "1.0.0",
+  "dependencies": {
+    "jose": "^5.2.0"
+  }
+}
