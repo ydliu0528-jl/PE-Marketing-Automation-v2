@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PE Marketing OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+:root{--bg:#0f0f11;--surface:#17171a;--surface2:#1f1f24;--border:rgba(255,255,255,0.07);--accent:#7c6ef7;--accent2:#4fd1a5;--accent3:#f7a26e;--danger:#f06e6e;--text:#f0eff5;--text2:#9896a8;--text3:#5c5a6e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:10;overflow-y:auto}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.logo-eye{font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--text3);text-transform:uppercase}
+.logo-name{font-size:17px;font-weight:600;color:var(--text);margin-top:3px}
+.nav-sec{padding:8px 20px 4px;font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(124,110,247,.08)}
+.sidebar-foot{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.sync-btn{width:100%;padding:9px;background:rgba(124,110,247,.12);border:1px solid rgba(124,110,247,.25);border-radius:8px;color:var(--accent);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.last-sync{font-size:11px;color:var(--text3);text-align:center;margin-top:8px}
+.main{margin-left:220px;flex:1;padding:32px;max-width:1400px}
+.page{display:none}.page.active{display:block}
+.page-header{margin-bottom:24px}
+.page-title{font-size:22px;font-weight:600}
+.page-sub{font-size:13px;color:var(--text2);margin-top:5px}
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.fbtn{padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .12s}
+.fbtn:hover{color:var(--text);border-color:rgba(124,110,247,.3)}
+.fbtn.active{background:rgba(124,110,247,.1);border-color:rgba(124,110,247,.4);color:var(--accent);font-weight:500}
+.fdiv{width:1px;height:18px;background:var(--border);margin:0 2px}
+.date-in{padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;outline:none}
+.date-in:focus{border-color:rgba(124,110,247,.4);color:var(--text)}
+.fapply{padding:6px 14px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:500;cursor:pointer}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:20px}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.mc-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
+.mc-val{font-size:26px;font-weight:600;margin-top:5px;line-height:1}
+.mc-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.funnel-wrap{display:flex;flex-direction:column;gap:5px}
+.f-row{display:flex;align-items:center;gap:10px}
+.f-lbl{width:100px;font-size:11px;color:var(--text2);text-align:right;flex-shrink:0}
+.f-track{flex:1;background:var(--surface2);border-radius:5px;height:34px;overflow:hidden}
+.f-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:500;color:#fff;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.f-pct{width:40px;font-size:11px;color:var(--text3);text-align:right;flex-shrink:0}
+.f-arrow{font-size:10px;color:var(--text3);padding:1px 0 1px 110px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:9px 12px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2);color:var(--text)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.bv{background:rgba(79,209,165,.12);color:var(--accent2)}
+.bi{background:rgba(240,110,110,.1);color:var(--danger)}
+.bp{background:rgba(124,110,247,.1);color:var(--accent)}
+.bw{background:rgba(247,162,110,.1);color:var(--accent3)}
+.insight{background:linear-gradient(135deg,rgba(124,110,247,.06),rgba(79,209,165,.04));border:1px solid rgba(124,110,247,.15);border-radius:12px;padding:16px 20px;margin-bottom:16px;border-left:2px solid var(--accent);border-top-left-radius:0;border-bottom-left-radius:0}
+.insight-lbl{font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.insight-txt{font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap}
+.warn-box{background:rgba(240,110,110,.06);border:1px solid rgba(240,110,110,.2);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+.warn-title{font-size:11px;font-weight:600;color:var(--danger);margin-bottom:6px}
+.warn-item{font-size:12px;color:var(--text2);padding:3px 0}
+.chart-wrap{position:relative;height:220px}
+.chart-wrap-sm{position:relative;height:180px}
+#worldMap{width:100%;height:280px;border-radius:8px;position:relative;overflow:hidden;background:#1a1a2e}
+.map-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);pointer-events:none;display:none;white-space:nowrap;z-index:10}
+#worldMapSvg{width:100%;height:100%}
+#worldMapSvg .land{fill:#2a2a3e;stroke:#3d3d5c;stroke-width:0.3}
+.leads-value{display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:500}
+.val-s{background:rgba(124,110,247,.15);color:var(--accent)}
+.val-a{background:rgba(79,209,165,.12);color:var(--accent2)}
+.val-b{background:rgba(247,162,110,.1);color:var(--accent3)}
+.val-c{background:rgba(255,255,255,.06);color:var(--text3)}
+.cal-month-nav{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.cal-month-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:6px 14px;cursor:pointer;font-size:13px}
+.cal-month-label{font-size:16px;font-weight:600;color:var(--text);min-width:120px;text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{text-align:center;font-size:10px;color:var(--text3);padding:6px 0;text-transform:uppercase;letter-spacing:.08em}
+.cal-day{min-height:80px;background:var(--surface);border:0.5px solid var(--border);border-radius:6px;padding:6px;cursor:pointer;transition:border-color .12s;position:relative}
+.cal-day:hover{border-color:rgba(124,110,247,.4)}
+.cal-day.today{border-color:var(--accent)}
+.cal-day.other-month{opacity:.3}
+.cal-day-num{font-size:11px;color:var(--text3);margin-bottom:4px}
+.cal-event{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-mia{background:rgba(247,162,110,.15);color:var(--accent3)}
+.ev-yiduo{background:rgba(124,110,247,.12);color:var(--accent)}
+.ev-planned{background:rgba(255,255,255,.05);color:var(--text3);border:0.5px dashed var(--border)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:540px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.modal-close{float:right;cursor:pointer;color:var(--text3);font-size:22px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.okr-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.okr-item:last-child{border-bottom:none}
+.okr-label{flex:1;font-size:13px;color:var(--text2)}
+.okr-target{font-size:12px;color:var(--text3);width:110px;text-align:right;flex-shrink:0}
+.okr-actual{font-size:14px;font-weight:600;width:70px;text-align:right;flex-shrink:0}
+.okr-bar-wrap{width:100px;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;flex-shrink:0}
+.okr-bar{height:100%;border-radius:3px}
+.bonus-card{background:linear-gradient(135deg,rgba(79,209,165,.06),rgba(124,110,247,.04));border:1px solid rgba(79,209,165,.2);border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.bonus-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.bonus-row:last-child{border-bottom:none}
+.bonus-input{width:80px;padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;text-align:right;outline:none}
+.bonus-input:focus{border-color:var(--accent)}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.rep-mc{background:var(--surface2);border-radius:8px;padding:12px 14px}
+.rep-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.rep-val{font-size:20px;font-weight:600;margin-top:4px}
+.rep-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.rh{font-size:13px;font-weight:600;color:var(--text);margin:16px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sales-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.sales-card{background:var(--surface2);border-radius:10px;padding:14px}
+.sales-name{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:8px}
+.sales-stat{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--text2)}
+.sales-stat span:last-child{font-weight:500;color:var(--text)}
+.setup{max-width:520px;margin:60px auto;text-align:center}
+.setup-form{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:left;margin-top:28px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;outline:none}
+.form-input:focus{border-color:var(--accent)}
+.form-btn{width:100%;padding:12px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;gap:14px}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:rgba(240,110,110,.08);border:1px solid rgba(240,110,110,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--danger);margin-bottom:16px}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-eye">Marketing OS</div><div class="logo-name">PE Dashboard</div></div>
+  <div class="nav-sec">分析</div>
+  <div class="nav-item active" onclick="nav('funnel')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12l-4.5 5.5V13l-3-1.5V8.5L2 3z"/></svg>Sales Funnel</div>
+  <div class="nav-item" onclick="nav('notes')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>笔记投放</div>
+  <div class="nav-sec">内容</div>
+  <div class="nav-item" onclick="nav('calendar')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 2v2M11 2v2M2 7h12"/></svg>Content Calendar</div>
+  <div class="nav-sec">报告</div>
+  <div class="nav-item" onclick="nav('weekly')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h8M4 8h8M4 12h5"/></svg>Weekly Report</div>
+  <div class="nav-item" onclick="nav('monthly')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M8 5v6M5 8h6"/></svg>Monthly Report</div>
+  <div class="nav-sec">团队</div>
+  <div class="nav-item" onclick="nav('staff')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>员工管理台</div>
+  <div class="sidebar-foot">
+    <button class="sync-btn" onclick="syncAll()" id="syncBtn"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 8A5.5 5.5 0 012.5 8M2.5 8l2-2M2.5 8l2 2"/><path d="M2.5 8A5.5 5.5 0 0113.5 8M13.5 8l-2-2M13.5 8l-2 2"/></svg>同步数据</button>
+    <div class="last-sync" id="lastSync">未同步</div>
+  </div>
+</aside>
+<main class="main">
+
+<!-- Setup -->
+<div class="page active" id="page-setup">
+  <div class="setup">
+    <div style="font-size:44px;margin-bottom:16px">🔗</div>
+    <div style="font-size:22px;font-weight:600;margin-bottom:8px">连接 Google Sheets</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6">Private Key 在 Vercel 环境变量中配置</div>
+    <div class="setup-form">
+      <div class="form-group"><label class="form-label">Spreadsheet ID</label><input class="form-input" id="cfg-id" value="19ouqGqNAZvIvEtYbHA8gTGxsWel-1hRkMjAghdyj4II"/></div>
+      <div class="form-group"><label class="form-label">CRM Sheet（PE的客户1）</label><input class="form-input" id="cfg-crm" value="PE的客户1"/></div>
+      <div class="form-group"><label class="form-label">笔记投放数据 Sheet</label><input class="form-input" id="cfg-notes" value="笔记投放数据"/></div>
+      <div class="form-group"><label class="form-label">投放笔记对照表 Sheet</label><input class="form-input" id="cfg-map" value="投放笔记对照表"/></div>
+      <div class="form-group"><label class="form-label">Content Calendar Sheet</label><input class="form-input" id="cfg-cal" value="Content Calendar"/></div>
+      <button class="form-btn" onclick="saveAndLoad()">连接并加载数据 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Funnel -->
+<div class="page" id="page-funnel">
+  <div class="page-header"><div class="page-title">Marketing → Sales Funnel</div><div class="page-sub" id="funnel-range">加载中...</div></div>
+  <div id="funnel-err"></div>
+  <div class="filter-bar">
+    <div class="fbtn active" onclick="setRange('may',this)">5月至今</div>
+    <div class="fbtn" onclick="setRange('30',this)">近30天</div>
+    <div class="fbtn" onclick="setRange('thismonth',this)">本月</div>
+    <div class="fbtn" onclick="setRange('lastmonth',this)">上月</div>
+    <div class="fbtn" onclick="setRange('all',this)">全部</div>
+    <div class="fdiv"></div>
+    <input type="date" class="date-in" id="d-from" style="width:118px">
+    <span style="font-size:11px;color:var(--text3)">至</span>
+    <input type="date" class="date-in" id="d-to" style="width:118px">
+    <button class="fapply" onclick="applyCustomRange()">应用</button>
+  </div>
+  <div id="funnel-loading" class="loading-state"><div class="spinner"></div><div style="font-size:13px;color:var(--text3)">读取数据中...</div></div>
+  <div id="funnel-body" style="display:none">
+    <div id="funnel-warnings"></div>
+    <div class="metrics" id="f-metrics"></div>
+    <div class="insight"><div class="insight-lbl">⚡ 数据分析</div><div class="insight-txt" id="f-insight-txt"></div></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">漏斗转化</div><div class="funnel-wrap" id="f-funnel"></div></div>
+      <div class="card"><div class="card-title">Invalid 原因分布</div><div class="chart-wrap"><canvas id="chartInvalid"></canvas></div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">产品线（Valid leads）</div><div class="chart-wrap-sm"><canvas id="chartProduct"></canvas></div></div>
+      <div class="card">
+        <div class="card-title">地区分布</div>
+        <div id="worldMap"><div class="map-tooltip" id="mapTooltip"></div>
+          <svg id="worldMapSvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+            <path class="land" d="M120,80 L180,70 L230,80 L260,100 L280,130 L270,160 L240,180 L220,200 L200,220 L180,240 L160,230 L140,210 L120,190 L100,170 L90,150 L100,120 Z"/>
+            <path class="land" d="M80,100 L120,80 L100,120 L90,150 L70,160 L60,140 L70,120 Z"/>
+            <path class="land" d="M180,240 L200,220 L220,230 L230,250 L220,270 L200,260 Z"/>
+            <path class="land" d="M190,270 L230,250 L270,260 L300,280 L320,320 L330,370 L310,420 L280,440 L250,430 L220,400 L200,360 L190,320 L180,290 Z"/>
+            <path class="land" d="M440,70 L480,60 L510,70 L530,90 L520,110 L500,120 L480,115 L460,110 L440,100 Z"/>
+            <path class="land" d="M460,110 L500,120 L510,140 L490,150 L470,145 L455,130 Z"/>
+            <path class="land" d="M470,40 L490,30 L510,40 L510,70 L480,60 L460,60 Z"/>
+            <path class="land" d="M430,75 L445,70 L448,85 L440,90 L430,85 Z"/>
+            <path class="land" d="M450,160 L490,150 L530,160 L560,190 L570,240 L560,300 L540,350 L510,390 L480,400 L450,390 L420,360 L410,310 L410,260 L420,210 L440,180 Z"/>
+            <path class="land" d="M510,40 L600,30 L700,35 L780,45 L820,60 L800,80 L750,90 L700,85 L650,90 L600,85 L560,90 L530,80 L510,70 Z"/>
+            <path class="land" d="M530,140 L570,130 L610,140 L620,170 L600,190 L560,190 L530,170 Z"/>
+            <path class="land" d="M610,140 L660,130 L690,150 L700,190 L690,230 L670,250 L650,240 L630,210 L620,180 Z"/>
+            <path class="land" d="M690,150 L740,140 L770,160 L760,190 L730,200 L700,190 Z"/>
+            <path class="land" d="M740,190 L770,185 L780,210 L760,220 L740,210 Z"/>
+            <path class="land" d="M660,80 L730,70 L790,80 L810,100 L800,130 L770,150 L730,155 L700,150 L680,130 L660,110 Z"/>
+            <path class="land" d="M810,100 L825,95 L830,115 L820,125 L808,118 Z"/>
+            <path class="land" d="M820,80 L832,75 L836,90 L825,95 L815,88 Z"/>
+            <path class="land" d="M790,105 L805,100 L808,118 L798,122 L788,115 Z"/>
+            <path class="land" d="M730,310 L790,300 L840,320 L860,360 L850,400 L820,420 L770,415 L730,390 L710,360 L720,330 Z"/>
+            <path class="land" d="M300,20 L360,15 L390,30 L380,60 L350,70 L320,65 L300,50 Z"/>
+            <path class="land" d="M395,50 L415,45 L420,58 L408,65 L396,60 Z"/>
+            <path class="land" d="M555,320 L568,310 L574,340 L566,365 L554,355 Z"/>
+          </svg>
+        </div>
+        <div id="regionLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">最近 Valid Leads（含客户价值分析）</div>
+      <table class="tbl"><thead><tr><th>客户</th><th>级别</th><th>Funnel</th><th>产品线</th><th>来源笔记</th><th>地区</th><th>时间</th></tr></thead>
+      <tbody id="f-leads"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- Notes -->
+<div class="page" id="page-notes">
+  <div class="page-header"><div class="page-title">笔记投放分析</div><div class="page-sub" id="notes-range">加载中...</div></div>
+  <div class="filter-bar">
+    <div class="fbtn active" onclick="setNotesRange('all',this)">全部</div>
+    <div class="fbtn" onclick="setNotesRange('thismonth',this)">本月</div>
+    <div class="fbtn" onclick="setNotesRange('lastmonth',this)">上月</div>
+    <div class="fbtn" onclick="setNotesRange('week',this)">本周</div>
+    <div class="fdiv"></div>
+    <input type="date" class="date-in" id="nd-from" style="width:118px">
+    <span style="font-size:11px;color:var(--text3)">至</span>
+    <input type="date" class="date-in" id="nd-to" style="width:118px">
+    <button class="fapply" onclick="applyNotesRange()">应用</button>
+  </div>
+  <div id="notes-loading" class="loading-state"><div class="spinner"></div></div>
+  <div id="notes-body" style="display:none">
+    <div class="metrics" id="n-metrics"></div>
+    <div class="card">
+      <div class="card-title">笔记 ROI 明细</div>
+      <table class="tbl"><thead><tr><th>笔记名称</th><th>负责人</th><th>类型</th><th>状态</th><th>在投计划</th><th>消费</th><th>开口数</th><th>开口成本</th><th>留资数</th><th>留资成本</th><th>Sales Valid</th><th>Valid成本</th></tr></thead>
+      <tbody id="n-table"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar -->
+<div class="page" id="page-calendar">
+  <div class="page-header"><div class="page-title">Content Calendar</div><div class="page-sub">点击笔记查看详情</div></div>
+  <div id="cal-loading" class="loading-state"><div class="spinner"></div></div>
+  <div id="cal-body" style="display:none">
+    <div class="insight"><div class="insight-lbl">📅 发布策略建议</div><div class="insight-txt" id="cal-insight-txt"></div></div>
+    <div class="cal-month-nav">
+      <button class="cal-month-btn" onclick="changeCalMonth(-1)">← 上月</button>
+      <div class="cal-month-label" id="cal-month-label"></div>
+      <button class="cal-month-btn" onclick="changeCalMonth(1)">下月 →</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+</div>
+
+<!-- Weekly -->
+<div class="page" id="page-weekly">
+  <div class="page-header"><div class="page-title">Weekly Report</div><div class="page-sub">统计周期：周日 — 下周六</div></div>
+  <div class="filter-bar">
+    <label style="font-size:12px;color:var(--text2)">选择周起始日（周日）：</label>
+    <input type="date" class="date-in" id="week-start" style="width:140px">
+    <button class="fapply" onclick="generateWeekly()">生成报告</button>
+    <button style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer" onclick="window.print()">导出</button>
+  </div>
+  <div id="weekly-body"><div class="card" style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:28px;margin-bottom:12px">📋</div>选择周起始日后点击「生成报告」</div></div>
+</div>
+
+<!-- Monthly -->
+<div class="page" id="page-monthly">
+  <div class="page-header"><div class="page-title">Monthly Report</div><div class="page-sub">含 Funnel 健康度预警</div></div>
+  <div class="filter-bar">
+    <label style="font-size:12px;color:var(--text2)">选择月份：</label>
+    <input type="month" class="date-in" id="month-pick" style="width:140px">
+    <button class="fapply" onclick="generateMonthly()">生成报告</button>
+    <button style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer" onclick="window.print()">导出</button>
+  </div>
+  <div id="monthly-body"><div class="card" style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:28px;margin-bottom:12px">📊</div>选择月份后点击「生成报告」</div></div>
+</div>
+
+<!-- Staff -->
+<div class="page" id="page-staff">
+  <div class="page-header"><div class="page-title">员工管理台</div><div class="page-sub">Mia 月度 OKR 评估</div></div>
+  <div class="filter-bar">
+    <label style="font-size:12px;color:var(--text2)">评估月份：</label>
+    <input type="month" class="date-in" id="staff-month" style="width:140px">
+    <button class="fapply" onclick="generateStaff()">生成评估</button>
+  </div>
+  <div id="staff-body"><div class="card" style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:28px;margin-bottom:12px">👤</div>选择月份后点击「生成评估」</div></div>
+</div>
+
+</main>
+</div>
+
+<div class="modal-overlay" id="calModal">
+  <div class="modal"><span class="modal-close" onclick="closeModal()">×</span><div id="modal-content"></div></div>
+</div>
+
+<script>
+// ── State & Constants ──────────────────────────────────────────────────────
+const SHEET_ID = '19ouqGqNAZvIvEtYbHA8gTGxsWel-1hRkMjAghdyj4II';
+
+// EXACT sales person name strings from CRM D列
+const SALES_PERSONS = {
+  'Martin Ma (ProminentEdu_Martin)': '小马',
+  'PE - Esther 黄（英国时间）英国优萃教育(Esther 黄)': 'Esther',
+  '张立伟': '张立伟',
+};
+
+const REGION_COORDS = {
+  '英国本地':{x:47,y:25,color:'#7c6ef7'},
+  '中国内地':{x:76,y:38,color:'#4fd1a5'},
+  '亚洲地区':{x:79,y:45,color:'#f7a26e'},
+  '欧洲地区':{x:52,y:28,color:'#6b9ff7'},
+  '澳洲地区':{x:83,y:72,color:'#f7d96e'},
+  '美洲地区':{x:20,y:42,color:'#a26ef7'},
+};
+
+const LEADS_VALUE = {
+  '𝑺 𝒍𝒆𝒂𝒅𝒔':{label:'S Lead',cls:'val-s',desc:'冲刺型高价值'},
+  '𝑨 𝒍𝒆𝒂𝒅𝒔':{label:'A Lead',cls:'val-a',desc:'KS3长线培养'},
+  '𝑩 𝒍𝒆𝒂𝒅𝒔':{label:'B Lead',cls:'val-b',desc:'转轨国际学校'},
+  '𝑪 𝒍𝒆𝒂𝒅𝒔':{label:'C Lead',cls:'val-c',desc:'基础英语'},
+  '𝑪𝒉𝒂𝒔𝒊𝒏𝒈':{label:'Chasing',cls:'val-c',desc:'跟进中'},
+  '𝑳𝒐𝒔𝒕':{label:'Lost',cls:'bi',desc:'流失'},
+};
+
+const FUNNEL_HEALTH = {
+  validRate:{min:35},
+  needsRate:{min:60},
+  trialRate:{min:40},
+  signupRate:{min:60},
+};
+
+let cfg={}, crmRows=[], notesRows=[], mapRows=[], calRows=[];
+let charts={};
+let activeFrom=new Date('2025-05-01'), activeTo=null;
+let notesFrom=null, notesTo=null;
+let calMonth=new Date(2026,5,1); // June 2026
+
+// ── Date Parser ─────────────────────────────────────────────────────────────
+// Google Sheets FORMATTED_VALUE returns dates as DD/MM/YYYY
+// CRM dates are "2026年5月1日 05:36"
+function parseDate(raw) {
+  if (!raw) return null;
+  const s = raw.toString().trim();
+  if (!s || s==='None' || s==='-') return null;
+
+  // CRM: "2026年5月1日 05:36"
+  const cn = s.match(/(\d{4})年(\d+)月(\d+)/);
+  if (cn) return new Date(+cn[1], +cn[2]-1, +cn[3]);
+
+  // DD/MM/YYYY — Google Sheets default for Chinese locale
+  const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmy) return new Date(+dmy[3], +dmy[2]-1, +dmy[1]);
+
+  // YYYY/MM/DD
+  const ymd = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if (ymd) return new Date(+ymd[1], +ymd[2]-1, +ymd[3]);
+
+  // ISO YYYY-MM-DD
+  const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+
+  // Excel serial (5 digits, ~40000-70000)
+  if (/^\d{5}$/.test(s)) {
+    const n = parseInt(s);
+    if (n>39000 && n<70000) {
+      const d = new Date((n-25569)*86400*1000);
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    }
+  }
+  return null;
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function inRange(d, from, to) {
+  if (!d) return false;
+  if (from && d < from) return false;
+  if (to && d > to) return false;
+  return true;
+}
+
+// ── Config ──────────────────────────────────────────────────────────────────
+function saveAndLoad() {
+  cfg = {
+    sheetId: document.getElementById('cfg-id').value.trim(),
+    crm: document.getElementById('cfg-crm').value.trim(),
+    notes: document.getElementById('cfg-notes').value.trim(),
+    map: document.getElementById('cfg-map').value.trim(),
+    cal: document.getElementById('cfg-cal').value.trim(),
+  };
+  localStorage.setItem('pe_cfg_v4', JSON.stringify(cfg));
+  nav('funnel'); syncAll();
+}
+
+function loadCfg() {
+  const s = localStorage.getItem('pe_cfg_v4');
+  if (s) { cfg=JSON.parse(s); return true; }
+  return false;
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────────────
+function nav(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const idx=['funnel','notes','calendar','weekly','monthly','staff'].indexOf(name);
+  if (idx>=0) document.querySelectorAll('.nav-item')[idx].classList.add('active');
+}
+
+// ── API ──────────────────────────────────────────────────────────────────────
+async function fetchSheet(sheetName) {
+  const res = await fetch('/api/sheets', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({sheetId: cfg.sheetId||SHEET_ID, sheetName})
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error||'API error');
+  if (!json.data || json.data.length < 2) return [];
+  const h = json.data[0];
+  return json.data.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]||''])));
+}
+
+// ── Sync ─────────────────────────────────────────────────────────────────────
+async function syncAll() {
+  if (!loadCfg()) { nav('setup'); return; }
+  document.getElementById('syncBtn').style.opacity='0.5';
+  try {
+    [crmRows, notesRows, mapRows, calRows] = await Promise.all([
+      fetchSheet(cfg.crm||'PE的客户1'),
+      fetchSheet(cfg.notes||'笔记投放数据'),
+      fetchSheet(cfg.map||'投放笔记对照表'),
+      fetchSheet(cfg.cal||'Content Calendar'),
+    ]);
+    renderFunnel(); renderNotes(); renderCalendar();
+    const t=new Date();
+    document.getElementById('lastSync').textContent=t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 同步';
+  } catch(e) {
+    document.getElementById('funnel-err').innerHTML='<div class="err">⚠️ '+e.message+'</div>';
+    document.getElementById('funnel-loading').style.display='none';
+  } finally {
+    document.getElementById('syncBtn').style.opacity='1';
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function isValid(r) {
+  const v=(r['Valid?']||'').toLowerCase();
+  return v.includes('valid') && !v.includes('invalid');
+}
+
+function getSalesShortName(addedBy) {
+  return SALES_PERSONS[addedBy] || null;
+}
+
+function filteredCRM() {
+  return crmRows.filter(r=>{
+    const d=parseDate(r['添加时间']);
+    return d && inRange(d, activeFrom, activeTo);
+  });
+}
+
+// ── Funnel Range ─────────────────────────────────────────────────────────────
+function setRange(type, btn) {
+  document.querySelectorAll('#page-funnel .fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const now=new Date(), today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  if (type==='may'){activeFrom=new Date('2025-05-01');activeTo=null;}
+  else if (type==='30'){activeFrom=new Date(today);activeFrom.setDate(today.getDate()-30);activeTo=null;}
+  else if (type==='thismonth'){activeFrom=new Date(now.getFullYear(),now.getMonth(),1);activeTo=null;}
+  else if (type==='lastmonth'){activeFrom=new Date(now.getFullYear(),now.getMonth()-1,1);activeTo=new Date(now.getFullYear(),now.getMonth(),0);}
+  else{activeFrom=null;activeTo=null;}
+  if (crmRows.length) renderFunnel();
+}
+
+function applyCustomRange() {
+  const from=document.getElementById('d-from').value;
+  const to=document.getElementById('d-to').value;
+  activeFrom=from?new Date(from):null;
+  activeTo=to?new Date(to+'T23:59:59'):null;
+  document.querySelectorAll('#page-funnel .fbtn').forEach(b=>b.classList.remove('active'));
+  if (crmRows.length) renderFunnel();
+}
+
+// ── Render Funnel ────────────────────────────────────────────────────────────
+function renderFunnel() {
+  document.getElementById('funnel-loading').style.display='none';
+  document.getElementById('funnel-body').style.display='block';
+  const data=filteredCRM();
+  const total=data.length;
+  const valid=data.filter(isValid);
+  const invalid=data.filter(r=>(r['Valid?']||'').toLowerCase().includes('invalid'));
+  const s1=valid.filter(r=>(r['SalesFunnel']||'').includes('需求分析')).length;
+  const s2=valid.filter(r=>(r['SalesFunnel']||'').includes('试听')).length;
+  const s5=valid.filter(r=>(r['SalesFunnel']||'').includes('Sign up')||(r['SalesFunnel']||'').includes('报名')).length;
+  const vRate=total>0?(valid.length/total*100):0;
+  const sRate=valid.length>0?(s5/valid.length*100):0;
+
+  document.getElementById('f-metrics').innerHTML=[
+    ['总进线',total,'全部 leads','var(--text)'],
+    ['Sales Valid',valid.length,vRate.toFixed(1)+'% 有效率','var(--accent2)'],
+    ['Invalid',invalid.length,(100-vRate).toFixed(1)+'% 无效','var(--danger)'],
+    ['Sign up',s5,sRate.toFixed(1)+'% 转化','var(--accent3)'],
+  ].map(([l,v,s,c])=>'<div class="mc"><div class="mc-lbl">'+l+'</div><div class="mc-val" style="color:'+c+'">'+v+'</div><div class="mc-sub">'+s+'</div></div>').join('');
+
+  // Warnings
+  const warns=[];
+  if(total>0&&vRate<FUNNEL_HEALTH.validRate.min) warns.push('进线→Valid '+vRate.toFixed(1)+'% 低于健康下限('+FUNNEL_HEALTH.validRate.min+'%) — 投放笔记可能吸引了非目标用户');
+  if(valid.length>0&&s1/valid.length*100<FUNNEL_HEALTH.needsRate.min) warns.push('Valid→需求分析 '+(s1/valid.length*100).toFixed(1)+'% 偏低 — 销售首次响应话术需优化');
+  if(s1>0&&s2/s1*100<FUNNEL_HEALTH.trialRate.min) warns.push('需求→试听 '+(s2/s1*100).toFixed(1)+'% 偏低 — 试听课定价或时间协调存在阻力');
+  document.getElementById('funnel-warnings').innerHTML=warns.length?'<div class="warn-box"><div class="warn-title">🚨 Funnel 健康预警</div>'+warns.map(w=>'<div class="warn-item">• '+w+'</div>').join('')+'</div>':'';
+
+  // Funnel viz
+  const stages=[['总进线',total],['Sales Valid',valid.length],['需求分析',s1],['试听测评',s2],['Sign up',s5]];
+  const colors=['#7c6ef7','#6b9ff7','#4fd1a5','#f7a26e','#f06e6e'];
+  const maxV=stages[0][1]||1;
+  document.getElementById('f-funnel').innerHTML=stages.map(([lbl,cnt],i)=>{
+    const w=Math.max((cnt/maxV*100),5).toFixed(1);
+    const rate=i>0&&stages[i-1][1]>0?(cnt/stages[i-1][1]*100).toFixed(0):null;
+    const drop=i>0?'<div class="f-arrow">↓ '+rate+'% 推进</div>':'';
+    return drop+'<div class="f-row"><div class="f-lbl">'+lbl+'</div><div class="f-track"><div class="f-fill" style="width:'+w+'%;background:'+colors[i]+'">'+cnt+'</div></div><div class="f-pct">'+(rate?rate+'%':'')+'</div></div>';
+  }).join('');
+
+  // Charts
+  const invTypes={};
+  invalid.forEach(r=>{const k=(r['Valid?']||'').trim().replace('Invalid- ','').replace('Invalid-','');invTypes[k]=(invTypes[k]||0)+1;});
+  mkDoughnut('chartInvalid',invTypes,['#f06e6e','#f7a26e','#f7d96e','#a26ef7','#6e9af7']);
+  const prods={};
+  valid.forEach(r=>{const k=r['产品线']||r['细分产品']||'其他';if(k)prods[k]=(prods[k]||0)+1;});
+  mkDoughnut('chartProduct',prods,['#7c6ef7','#4fd1a5','#f7a26e','#6e9af7','#f06e6e']);
+
+  // World map
+  const regCount={};
+  valid.forEach(r=>{const k=r['地区']||'';if(REGION_COORDS[k])regCount[k]=(regCount[k]||0)+1;});
+  renderWorldMap(regCount);
+
+  // Leads table
+  const recent=[...valid].reverse().slice(0,20);
+  document.getElementById('f-leads').innerHTML=recent.map(r=>{
+    const lv=LEADS_VALUE[r['Leads Level']||r['Customer Level']||'']||{label:'—',cls:''};
+    const note=r['小红书广告']||'';
+    return '<tr><td style="color:var(--text);font-weight:500">'+(r['客户']||r['客户名称']||'—')+'</td><td><span class="leads-value '+lv.cls+'">'+lv.label+'</span></td><td><span class="badge bp">'+(r['SalesFunnel']||'—')+'</span></td><td>'+(r['产品线']||r['细分产品']||'—')+'</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+note+'"><span style="font-size:11px;color:var(--accent)">'+(note?note.slice(0,18)+(note.length>18?'…':''):'—')+'</span></td><td>'+(r['地区']||'—')+'</td><td style="font-size:11px;color:var(--text3)">'+(r['添加时间']||'').toString().slice(0,10)+'</td></tr>';
+  }).join('');
+
+  const dates=data.map(r=>parseDate(r['添加时间'])).filter(Boolean).sort((a,b)=>a-b);
+  if(dates.length) document.getElementById('funnel-range').textContent='数据范围：'+fmtDate(dates[0])+' — '+fmtDate(dates[dates.length-1])+'（'+total+' 条记录）';
+
+  // Insight
+  const topInvalid=Object.entries(invTypes).sort((a,b)=>b[1]-a[1]);
+  const top1=topInvalid[0]||['数据不足',0];
+  const top2=topInvalid[1]||null;
+  const sLeads=valid.filter(r=>r['Leads Level']&&r['Leads Level'].includes('𝑺')).length;
+  const lines=[];
+  const health=vRate>=45?'✅ 良好':vRate>=35?'⚠️ 一般':'🔴 需优化';
+  lines.push(health+'（Valid率 '+vRate.toFixed(1)+'%，成单率 '+sRate.toFixed(1)+'%）');
+  lines.push('');
+  lines.push('📌 最大流失：'+top1[0]+'（'+top1[1]+'人）'+(top2?' / '+top2[0]+'（'+top2[1]+'人）':''));
+  if(top1[0].includes('价格')) lines.push('→ 笔记封面加入价格锚点，提前筛选高付费意愿用户');
+  else if(top1[0].includes('不回')) lines.push('→ 私信开场白优化，首条消息直接给出价值主张');
+  else if(top1[0].includes('线下')) lines.push('→ 笔记正文明确标注"纯线上授课"');
+  if(valid.length>0) {
+    const sr=(sLeads/valid.length*100).toFixed(0);
+    lines.push('');
+    lines.push('💎 S Leads占比：'+sr+'%（'+sLeads+'/'+valid.length+'）'+(sLeads/valid.length<0.3?' — 偏低，建议加强IGCSE冲刺硬广':' — 健康'));
+  }
+  if(s5>0) lines.push('✅ 已成单'+s5+'人，持续跟进试听阶段的'+s2+'个leads');
+  document.getElementById('f-insight-txt').textContent=lines.join('\n');
+}
+
+// ── World Map ────────────────────────────────────────────────────────────────
+function renderWorldMap(regCount) {
+  const svg=document.getElementById('worldMapSvg');
+  svg.querySelectorAll('.map-bubble,.map-label').forEach(e=>e.remove());
+  const tooltip=document.getElementById('mapTooltip');
+  const mapEl=document.getElementById('worldMap');
+  const maxCount=Math.max(...Object.values(regCount),1);
+  Object.entries(regCount).forEach(([reg,count])=>{
+    const coord=REGION_COORDS[reg]; if(!coord) return;
+    const cx=coord.x/100*1000, cy=coord.y/100*500;
+    const r=6+(count/maxCount)*18;
+    const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',cx);circle.setAttribute('cy',cy);circle.setAttribute('r',r);
+    circle.setAttribute('fill',coord.color);circle.setAttribute('opacity','0.85');circle.setAttribute('class','map-bubble');
+    const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('x',cx);label.setAttribute('y',cy+4);label.setAttribute('text-anchor','middle');
+    label.setAttribute('fill','#fff');label.setAttribute('font-size','10');label.setAttribute('font-weight','600');
+    label.setAttribute('pointer-events','none');label.setAttribute('class','map-label');label.textContent=count;
+    circle.addEventListener('mouseenter',()=>{
+      const svgRect=svg.getBoundingClientRect();
+      const scaleX=svgRect.width/1000,scaleY=svgRect.height/500;
+      tooltip.style.display='block';tooltip.style.left=(cx*scaleX+10)+'px';tooltip.style.top=(cy*scaleY-10)+'px';
+      tooltip.innerHTML='<strong>'+reg+'</strong>: '+count+' Valid leads';
+      circle.setAttribute('r',r*1.3);
+    });
+    circle.addEventListener('mouseleave',()=>{tooltip.style.display='none';circle.setAttribute('r',r);});
+    svg.appendChild(circle);svg.appendChild(label);
+  });
+  document.getElementById('regionLegend').innerHTML=Object.entries(regCount).sort((a,b)=>b[1]-a[1])
+    .map(([reg,cnt])=>'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><div style="width:8px;height:8px;border-radius:50%;background:'+(REGION_COORDS[reg]||{color:'#888'}).color+'"></div>'+reg+' '+cnt+'</div>').join('');
+}
+
+// ── Notes ────────────────────────────────────────────────────────────────────
+function setNotesRange(type, btn) {
+  document.querySelectorAll('#page-notes .fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const now=new Date();
+  if(type==='all'){notesFrom=null;notesTo=null;}
+  else if(type==='thismonth'){notesFrom=new Date(now.getFullYear(),now.getMonth(),1);notesTo=null;}
+  else if(type==='lastmonth'){notesFrom=new Date(now.getFullYear(),now.getMonth()-1,1);notesTo=new Date(now.getFullYear(),now.getMonth(),0);}
+  else if(type==='week'){const d=now.getDay();notesFrom=new Date(now);notesFrom.setDate(now.getDate()-d);notesTo=null;}
+  renderNotes();
+}
+
+function applyNotesRange() {
+  const from=document.getElementById('nd-from').value;
+  const to=document.getElementById('nd-to').value;
+  notesFrom=from?new Date(from):null;
+  notesTo=to?new Date(to+'T23:59:59'):null;
+  document.querySelectorAll('#page-notes .fbtn').forEach(b=>b.classList.remove('active'));
+  renderNotes();
+}
+
+function renderNotes() {
+  document.getElementById('notes-loading').style.display='none';
+  document.getElementById('notes-body').style.display='block';
+
+  // Build lookups from 投放笔记对照表
+  const idToMap={};
+  mapRows.forEach(r=>{
+    const id=(r['笔记/素材ID']||'').trim();
+    if(id) idToMap[id]={name:r['笔记名称']||'',type:r['课程类型']||'',status:r['笔记投放状态']||'',planA:r['在投计划A']||'',planB:r['在投计划B']||''};
+  });
+
+  // Build ID→owner from Content Calendar
+  const idToOwner={};
+  calRows.forEach(r=>{
+    const id=(r['小红书笔记投放ID']||'').trim();
+    const owner=r['负责人']||'';
+    if(id&&id!=='N/A'&&owner) idToOwner[id]=owner;
+  });
+
+  // Build noteName→valid count from CRM
+  const nameToValid={};
+  crmRows.filter(isValid).forEach(r=>{
+    const n=r['小红书广告'];
+    if(n) nameToValid[n]=(nameToValid[n]||0)+1;
+  });
+
+  // Aggregate from 笔记投放数据 with date filter
+  const noteAgg={};
+  notesRows.forEach(r=>{
+    const id=(r['笔记/素材ID']||'').trim();
+    if(!id||id==='-') return;
+    const d=parseDate(r['时间']);
+    if(!d) return;
+    if(!inRange(d,notesFrom,notesTo)) return;
+    if(!noteAgg[id]) noteAgg[id]={spend:0,open:0,lead:0};
+    noteAgg[id].spend+=parseFloat(r['消费'])||0;
+    noteAgg[id].open+=parseFloat(r['私信开口人数'])||0;
+    noteAgg[id].lead+=parseFloat(r['私信留资人数'])||0;
+  });
+
+  let totalSpend=0,totalOpen=0,totalLead=0;
+  Object.values(noteAgg).forEach(v=>{totalSpend+=v.spend;totalOpen+=v.open;totalLead+=v.lead;});
+  const totalValid=Object.values(nameToValid).reduce((a,b)=>a+b,0);
+
+  document.getElementById('notes-range').textContent=notesFrom?fmtDate(notesFrom)+' — '+(notesTo?fmtDate(notesTo):'至今'):'全部数据（'+Object.keys(noteAgg).length+'条笔记）';
+
+  document.getElementById('n-metrics').innerHTML=[
+    ['总广告消费','¥'+totalSpend.toFixed(0),'','var(--accent)'],
+    ['总开口',totalOpen.toFixed(0),'开口成本 ¥'+(totalOpen>0?(totalSpend/totalOpen).toFixed(0):'—'),'var(--text)'],
+    ['总留资',totalLead.toFixed(0),'留资成本 ¥'+(totalLead>0?(totalSpend/totalLead).toFixed(0):'—'),'var(--accent2)'],
+    ['Sales Valid',totalValid,'CRM验证','var(--accent3)'],
+  ].map(([l,v,s,c])=>'<div class="mc"><div class="mc-lbl">'+l+'</div><div class="mc-val" style="color:'+c+'">'+v+'</div><div class="mc-sub">'+s+'</div></div>').join('');
+
+  const rows=Object.entries(noteAgg).map(([id,v])=>{
+    const m=idToMap[id]||{};
+    const owner=idToOwner[id]||(m.name?'Yiduo':'—');
+    const name=m.name||id.slice(0,12)+'…';
+    const validCount=nameToValid[name]||0;
+    const openCost=v.open>0?(v.spend/v.open).toFixed(0):'—';
+    const leadCost=v.lead>0?(v.spend/v.lead).toFixed(0):'—';
+    const validCost=validCount>0?(v.spend/validCount).toFixed(0):'—';
+    const plans=[m.planA,m.planB].filter(p=>p&&p!=='None'&&p!=='').join(' + ')||'—';
+    return {id,name,owner,type:m.type||'—',status:m.status||'—',plans,...v,openCost,leadCost,validCount,validCost};
+  }).sort((a,b)=>b.spend-a.spend);
+
+  document.getElementById('n-table').innerHTML=rows.map(r=>'<tr><td style="color:var(--text);font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+r.name+'">'+r.name+'</td><td><span class="badge '+(r.owner==='Mia'?'bw':'bp')+'">'+r.owner+'</span></td><td style="font-size:11px">'+r.type+'</td><td><span class="badge '+(r.status==='在投'?'bv':'bi')+'">'+r.status+'</span></td><td style="font-size:11px;color:var(--text3)">'+r.plans+'</td><td>¥'+r.spend.toFixed(0)+'</td><td>'+r.open.toFixed(0)+'</td><td style="color:'+(parseFloat(r.openCost)<=350?'var(--accent2)':parseFloat(r.openCost)<=500?'var(--accent3)':'var(--danger)')+'">'+( r.openCost==='—'?'—':'¥'+r.openCost)+'</td><td>'+r.lead.toFixed(0)+'</td><td style="color:'+(parseFloat(r.leadCost)<=550?'var(--accent2)':parseFloat(r.leadCost)<=800?'var(--accent3)':'var(--danger)')+'">'+( r.leadCost==='—'?'—':'¥'+r.leadCost)+'</td><td><span class="badge '+(r.validCount>0?'bv':'bi')+'">'+r.validCount+'</span></td><td>'+(r.validCost==='—'?'—':'¥'+r.validCost)+'</td></tr>').join('');
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  document.getElementById('cal-loading').style.display='none';
+  document.getElementById('cal-body').style.display='block';
+  renderCalMonth();
+  renderCalInsight();
+}
+
+function changeCalMonth(delta) {
+  calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+delta,1);
+  renderCalMonth();
+}
+
+function renderCalMonth() {
+  const year=calMonth.getFullYear(), month=calMonth.getMonth();
+  document.getElementById('cal-month-label').textContent=year+'年'+(month+1)+'月';
+  const dateToEvents={};
+  calRows.forEach(r=>{
+    const d=parseDate(r['发布日期']);
+    if(!d) return;
+    const key=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+    if(!dateToEvents[key]) dateToEvents[key]=[];
+    dateToEvents[key].push(r);
+  });
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  let html=['日','一','二','三','四','五','六'].map(d=>'<div class="cal-dow">'+d+'</div>').join('');
+  for(let i=0;i<firstDay;i++) html+='<div class="cal-day other-month"></div>';
+  for(let day=1;day<=daysInMonth;day++) {
+    const isToday=year===today.getFullYear()&&month===today.getMonth()&&day===today.getDate();
+    const key=year+'-'+month+'-'+day;
+    const events=dateToEvents[key]||[];
+    const evHtml=events.map(ev=>{
+      const owner=ev['负责人']||'';
+      const status=ev['任务完成状态']||'';
+      const cls=status!=='已发布'?'ev-planned':owner==='Mia'?'ev-mia':'ev-yiduo';
+      const title=(ev['主题']||ev['小红书笔记名']||'').slice(0,14);
+      return '<div class="cal-event '+cls+'" onclick=\'showCalModal(event,'+JSON.stringify(JSON.stringify(ev))+')\' title="'+(ev['主题']||'')+'">'+title+'</div>';
+    }).join('');
+    html+='<div class="cal-day'+(isToday?' today':'')+'"><div class="cal-day-num">'+day+'</div>'+evHtml+'</div>';
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+
+function showCalModal(e, evJsonStr) {
+  e.stopPropagation();
+  const ev=JSON.parse(evJsonStr);
+  const owner=ev['负责人']||'—';
+  const status=ev['任务完成状态']||'计划中';
+  const hasInvest=ev['小红书笔记投放ID']&&ev['小红书笔记投放ID']!=='N/A';
+  const d=parseDate(ev['发布日期']);
+  document.getElementById('modal-content').innerHTML='<div style="margin-bottom:16px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+(ev['周']||'')+' · '+(d?fmtDate(d):'')+'</div><div style="font-size:17px;font-weight:600;margin-bottom:8px">'+(ev['主题']||ev['小红书笔记名']||'—')+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"><span style="display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:500;background:'+(owner==='Mia'?'rgba(247,162,110,.15)':'rgba(124,110,247,.12)')+';color:'+(owner==='Mia'?'var(--accent3)':'var(--accent)')+'">'+owner+'</span><span style="display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;background:var(--surface2);color:var(--text2)">'+(ev['类型']||'—')+'</span><span style="display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;background:'+(status==='已发布'?'rgba(79,209,165,.12)':'rgba(255,255,255,.05)')+';color:'+(status==='已发布'?'var(--accent2)':'var(--text3)')+'">'+status+'</span></div></div>'+(ev['笔记核心内容']?'<div style="margin-bottom:16px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px">核心内容</div><div style="font-size:13px;color:var(--text2);line-height:1.7">'+ev['笔记核心内容']+'</div></div>':'')+(ev['小红书笔记名']?'<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">笔记名称</div><div style="font-size:13px;color:var(--accent)">'+ev['小红书笔记名']+'</div></div>':'')+(hasInvest?'<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">投放 ID</div><div style="font-size:12px;font-family:monospace;color:var(--text2)">'+ev['小红书笔记投放ID']+'</div></div>':'<div style="font-size:12px;color:var(--text3);margin-top:8px">自然流量内容（未投放）</div>');
+  document.getElementById('calModal').classList.add('open');
+}
+function closeModal(){document.getElementById('calModal').classList.remove('open');}
+
+function renderCalInsight() {
+  const published=calRows.filter(r=>r['任务完成状态']==='已发布');
+  const igcse=published.filter(r=>(r['类型']||'').includes('IGCSE')).length;
+  const alevel=published.filter(r=>(r['类型']||'').toUpperCase().includes('ALEVEL')||r['类型'].includes('A-level')).length;
+  const total=published.length;
+  const now=new Date(), m=now.getMonth()+1;
+  const strategies={
+    5:'暑假班招募季启动 — IGCSE暑假冲刺内容ROI最高，S Leads（Year10-11）最活跃',
+    6:'暑假备考旺季 — 7月前完成暑假班招募，IGCSE:A-Level建议6:4',
+    7:'暑假密集备考 — S Leads课时爆发期，重点输出干货+品牌背书',
+    8:'新学期规划 — A Leads（Year7-9新生）+B Leads衔接课，长期课包转化',
+    9:'秋季大考报名截止 — S Leads冲刺内容，强调报名时间节点',
+    10:'秋季大考冲刺 — 10-11月大考季，S Leads最高价值时期',
+    11:'出分规划 — 成绩复盘+明年布局，续课转化黄金期',
+    12:'寒假班招募 — 全客群，寒假备考需求集中爆发',
+  };
+  const strategy=strategies[m]||strategies[6];
+  const ratio=total>0?'IGCSE '+igcse+'篇('+Math.round(igcse/total*100)+'%) / A-Level '+alevel+'篇('+Math.round(alevel/total*100)+'%)':'暂无数据';
+  const warning=alevel>igcse?'\n⚠️ A-Level比例偏高，建议本周回归IGCSE主线（目标比例 6:3:1）':'';
+  document.getElementById('cal-insight-txt').textContent='当前已发布 '+total+' 篇：'+ratio+warning+'\n\n本月策略：'+strategy+'\n\n── Weekly 节奏建议 ──\nWeek 1｜IGCSE硬广（针对S Leads）→ 强调exam technique/考官资质，CTA试听课\nWeek 2｜干货内容（针对A Leads）→ 选科规划/年级衔接，T1-T2国际学校家庭，自然流量\nWeek 3｜A-Level硬广（针对升Level的S Leads）→ 暑假衔接班\nWeek 4｜前沿资讯（全客群）→ 考试局政策/大学录取/热点追踪';
+}
+
+// ── Weekly Report ────────────────────────────────────────────────────────────
+function generateWeekly() {
+  const startStr=document.getElementById('week-start').value;
+  if(!startStr){alert('请选择周起始日');return;}
+  const start=new Date(startStr);
+  const end=new Date(start);end.setDate(start.getDate()+6);end.setHours(23,59,59);
+
+  // Tab 2: 笔记投放数据 → 总进线(私信进线人数)、开口(私信开口人数)
+  const weekNotes=notesRows.filter(r=>{const d=parseDate(r['时间']);return d&&inRange(d,start,end);});
+  const totalSpend=weekNotes.reduce((s,r)=>s+(parseFloat(r['消费'])||0),0);
+  const totalOpen=weekNotes.reduce((s,r)=>s+(parseFloat(r['私信开口人数'])||0),0);
+  const totalInline=weekNotes.reduce((s,r)=>s+(parseFloat(r['私信进线人数'])||0),0);
+
+  // Tab 1: CRM → 留资(进入私域的leads数量)、valid leads、sales转化
+  const weekCRM=crmRows.filter(r=>{const d=parseDate(r['添加时间']);return d&&inRange(d,start,end);});
+  const留资=weekCRM.length; // 所有进入私域的leads
+  const valid=weekCRM.filter(isValid);
+  const cpv=valid.length>0?(totalSpend/valid.length).toFixed(2):'—';
+
+  // Product breakdown
+  const prods={};
+  weekCRM.forEach(r=>{const k=r['产品线']||r['细分产品']||'其他';if(k)prods[k]=(prods[k]||0)+1;});
+
+  // Sales breakdown using exact names from D列
+  const salesMap={'小马':{total:0,valid:0,invalid:0,funnel:{}},'Esther':{total:0,valid:0,invalid:0,funnel:{}},'张立伟':{total:0,valid:0,invalid:0,funnel:{}}};
+  weekCRM.forEach(r=>{
+    const addedBy=r['添加人']||'';
+    const name=getSalesShortName(addedBy);
+    if(!name||!salesMap[name]) return;
+    salesMap[name].total++;
+    if(isValid(r)){
+      salesMap[name].valid++;
+      const f=r['SalesFunnel']||'其他';
+      salesMap[name].funnel[f]=(salesMap[name].funnel[f]||0)+1;
+    } else {
+      salesMap[name].invalid++;
+    }
+  });
+
+  const mo=start.getMonth()+1,dy=start.getDate(),emo=end.getMonth()+1,edy=end.getDate();
+  document.getElementById('weekly-body').innerHTML='<div style="margin-bottom:20px"><h2 style="font-size:16px;font-weight:600">主账号 '+mo+'.'+dy+'–'+emo+'.'+edy+' 小红书数据统计</h2><div style="font-size:12px;color:var(--text3);margin-top:4px">统计周期：'+fmtDate(start)+' 至 '+fmtDate(end)+'</div></div>'
+  +'<div class="rh">进线数据（来源：笔记投放数据 + CRM）</div>'
+  +'<div class="rep-grid">'
+  +'<div class="rep-mc"><div class="rep-lbl">总进线（广告）</div><div class="rep-val">'+totalInline.toFixed(0)+' 人</div><div class="rep-sub">来自笔记投放数据</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">开口人数</div><div class="rep-val">'+totalOpen.toFixed(0)+' 人</div><div class="rep-sub">私信开口数</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">留资/进私域</div><div class="rep-val">'+留资+' 人</div><div class="rep-sub">来自CRM</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">Sales Valid</div><div class="rep-val" style="color:var(--accent2)">'+valid.length+' 人</div><div class="rep-sub">Sales标注Valid</div></div>'
+  +'</div>'
+  +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">进线产品分布：'+Object.entries(prods).map(([k,v])=>k+' ×'+v).join(' | ')+'</div>'
+  +'<div class="rh">Sales 转化率统计</div>'
+  +'<div class="sales-g">'+['小马','Esther','张立伟'].map(name=>{
+    const d=salesMap[name];
+    return '<div class="sales-card"><div class="sales-name">'+name+'</div>'
+      +'<div class="sales-stat"><span>共计加上</span><span>'+d.total+' 人</span></div>'
+      +'<div class="sales-stat"><span>Valid leads</span><span style="color:var(--accent2)">'+d.valid+' 人</span></div>'
+      +'<div class="sales-stat"><span>Invalid</span><span style="color:var(--danger)">'+d.invalid+' 人</span></div>'
+      +Object.entries(d.funnel).map(([f,c])=>'<div class="sales-stat"><span style="font-size:11px">'+f+'</span><span>'+c+'人</span></div>').join('')
+      +'</div>';
+  }).join('')+'</div>'
+  +'<div class="rh">本周预算</div>'
+  +'<div class="rep-grid">'
+  +'<div class="rep-mc"><div class="rep-lbl">总消耗预算</div><div class="rep-val">¥'+totalSpend.toFixed(2)+'</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">Cost per Valid Lead</div><div class="rep-val" style="color:'+(parseFloat(cpv)<=1000?'var(--accent2)':'var(--danger)')+'">¥'+cpv+'</div><div class="rep-sub">目标 ≤¥1000</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">开口成本</div><div class="rep-val" style="color:'+(totalOpen>0&&totalSpend/totalOpen<=350?'var(--accent2)':'var(--danger)')+'">¥'+(totalOpen>0?(totalSpend/totalOpen).toFixed(0):'—')+'</div><div class="rep-sub">目标 ≤¥350</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">Valid 率</div><div class="rep-val">'+(weekCRM.length>0?(valid.length/weekCRM.length*100).toFixed(1):0)+'%</div></div>'
+  +'</div>';
+}
+
+// ── Monthly Report ────────────────────────────────────────────────────────────
+function generateMonthly() {
+  const monthStr=document.getElementById('month-pick').value;
+  if(!monthStr){alert('请选择月份');return;}
+  const [year,month]=monthStr.split('-').map(Number);
+  const start=new Date(year,month-1,1);
+  const end=new Date(year,month,0,23,59,59);
+
+  // Tab 2: 笔记投放数据 → 进线/开口/消费
+  const monthNotes=notesRows.filter(r=>{const d=parseDate(r['时间']);return d&&inRange(d,start,end);});
+  const totalSpend=monthNotes.reduce((s,r)=>s+(parseFloat(r['消费'])||0),0);
+  const totalOpen=monthNotes.reduce((s,r)=>s+(parseFloat(r['私信开口人数'])||0),0);
+  const totalInline=monthNotes.reduce((s,r)=>s+(parseFloat(r['私信进线人数'])||0),0);
+
+  // Tab 1: CRM → 留资/Valid/Funnel
+  const monthCRM=crmRows.filter(r=>{const d=parseDate(r['添加时间']);return d&&inRange(d,start,end);});
+  const valid=monthCRM.filter(isValid);
+  const invalid=monthCRM.filter(r=>(r['Valid?']||'').toLowerCase().includes('invalid'));
+  const s1=valid.filter(r=>(r['SalesFunnel']||'').includes('需求分析')).length;
+  const s2=valid.filter(r=>(r['SalesFunnel']||'').includes('试听')).length;
+  const s5=valid.filter(r=>(r['SalesFunnel']||'').includes('Sign up')||(r['SalesFunnel']||'').includes('报名')).length;
+  const cpv=valid.length>0?(totalSpend/valid.length).toFixed(0):'—';
+  const openCost=totalOpen>0?(totalSpend/totalOpen).toFixed(0):'—';
+
+  const vRate=monthCRM.length>0?valid.length/monthCRM.length*100:0;
+  const needsRate=valid.length>0?s1/valid.length*100:0;
+  const trialRate=s1>0?s2/s1*100:0;
+  const signRate=s2>0?s5/s2*100:0;
+
+  const warns=[];
+  if(vRate<35) warns.push({stage:'进线→Valid',rate:vRate,min:35,reason:'投放定向不精准，非目标用户过多'});
+  if(needsRate<60&&valid.length>0) warns.push({stage:'Valid→需求分析',rate:needsRate,min:60,reason:'销售首次响应速度或话术需优化'});
+  if(trialRate<40&&s1>0) warns.push({stage:'需求→试听',rate:trialRate,min:40,reason:'试听课定价或时间协调存在阻力'});
+  if(signRate<60&&s2>0) warns.push({stage:'试听→成单',rate:signRate,min:60,reason:'试听后跟进力度不足或报价异议未解决'});
+
+  const invTypes={};
+  invalid.forEach(r=>{const k=(r['Valid?']||'').trim().replace('Invalid- ','').replace('Invalid-','');invTypes[k]=(invTypes[k]||0)+1;});
+  const prods={};
+  valid.forEach(r=>{const k=r['产品线']||'其他';prods[k]=(prods[k]||0)+1;});
+
+  document.getElementById('monthly-body').innerHTML='<div style="margin-bottom:20px"><h2 style="font-size:16px;font-weight:600">'+year+'年'+month+'月 Marketing 月度报告</h2></div>'
+  +(warns.length?'<div class="warn-box"><div class="warn-title">🚨 Funnel 健康预警（'+warns.length+'项）</div>'+warns.map(w=>'<div class="warn-item">• <strong>'+w.stage+'</strong>: 当前'+w.rate.toFixed(1)+'%，低于合理下限'+w.min+'%。'+w.reason+'</div>').join('')+'</div>':'<div style="background:rgba(79,209,165,.06);border:1px solid rgba(79,209,165,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--accent2)">✓ 本月 Funnel 健康度良好</div>')
+  +'<div class="rh">预算概览</div>'
+  +'<div class="rep-grid">'
+  +'<div class="rep-mc"><div class="rep-lbl">总广告消费</div><div class="rep-val">¥'+totalSpend.toFixed(0)+'</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">开口成本</div><div class="rep-val" style="color:'+(parseFloat(openCost)<=350?'var(--accent2)':'var(--danger)')+'">¥'+openCost+'</div><div class="rep-sub">目标≤¥350</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">Valid Lead成本</div><div class="rep-val" style="color:'+(parseFloat(cpv)<=1000?'var(--accent2)':'var(--danger)')+'">¥'+cpv+'</div><div class="rep-sub">目标≤¥1000</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">总进线</div><div class="rep-val">'+totalInline.toFixed(0)+'</div><div class="rep-sub">笔记投放数据</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">开口人数</div><div class="rep-val">'+totalOpen.toFixed(0)+'</div><div class="rep-sub">笔记投放数据</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">留资/进私域</div><div class="rep-val">'+monthCRM.length+'</div><div class="rep-sub">来自CRM</div></div>'
+  +'</div>'
+  +'<div class="rh">Funnel 损耗率</div>'
+  +'<div class="card">'+[
+    {name:'总进线→Valid',rate:vRate,cnt:valid.length,from:monthCRM.length,min:35},
+    {name:'Valid→需求分析',rate:needsRate,cnt:s1,from:valid.length,min:60},
+    {name:'需求→试听',rate:trialRate,cnt:s2,from:s1,min:40},
+    {name:'试听→Sign up',rate:signRate,cnt:s5,from:s2,min:60},
+  ].map(s=>{
+    const color=s.rate>=s.min+15?'var(--accent2)':s.rate>=s.min?'var(--accent3)':'var(--danger)';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="width:180px;font-size:12px;color:var(--text2)">'+s.name+'</div><div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="width:'+Math.min(s.rate,100).toFixed(1)+'%;height:100%;background:'+color+';border-radius:4px"></div></div><div style="width:50px;font-size:13px;font-weight:600;text-align:right;color:'+color+'">'+s.rate.toFixed(1)+'%</div><div style="width:60px;font-size:11px;color:var(--text3);text-align:right">'+s.cnt+'/'+s.from+'</div>'+(s.rate>=s.min?'<span class="badge bv">健康</span>':'<span class="badge bi">⚠️</span>')+'</div>';
+  }).join('')+'<div style="font-size:11px;color:var(--text3);margin-top:10px">健康下限：进线→Valid≥35%，Valid→需求≥60%，需求→试听≥40%，试听→成单≥60%</div></div>'
+  +'<div class="rh">Valid Leads 概览</div>'
+  +'<div class="rep-grid">'
+  +'<div class="rep-mc"><div class="rep-lbl">Sales Valid</div><div class="rep-val" style="color:var(--accent2)">'+valid.length+'</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">需求分析</div><div class="rep-val">'+s1+'</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">试听测评</div><div class="rep-val">'+s2+'</div></div>'
+  +'<div class="rep-mc"><div class="rep-lbl">Sign up</div><div class="rep-val" style="color:var(--accent3)">'+s5+'</div></div>'
+  +'</div>'
+  +'<div style="font-size:13px;color:var(--text2);margin-bottom:8px">产品线：'+Object.entries(prods).map(([k,v])=>k+' '+v+'人').join(' · ')+'</div>'
+  +'<div style="font-size:13px;color:var(--text2)">Invalid：'+Object.entries(invTypes).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+' '+v+'人').join(' · ')+'</div>';
+}
+
+// ── Staff OKR ─────────────────────────────────────────────────────────────────
+function generateStaff() {
+  const monthStr=document.getElementById('staff-month').value;
+  if(!monthStr){alert('请选择月份');return;}
+  const [year,month]=monthStr.split('-').map(Number);
+  const start=new Date(year,month-1,1);
+  const end=new Date(year,month,0,23,59,59);
+
+  // Mia's notes from Content Calendar for this month
+  const miaNotes=calRows.filter(r=>{
+    if(r['负责人']!=='Mia') return false;
+    const d=parseDate(r['发布日期']);
+    return d&&inRange(d,start,end);
+  });
+
+  // Mia's note IDs and names
+  const miaNoteIds=new Set(miaNotes.map(r=>(r['小红书笔记投放ID']||'').trim()).filter(id=>id&&id!=='N/A'));
+  const miaNoteNames=new Set(miaNotes.map(r=>(r['小红书笔记名']||'').trim()).filter(Boolean));
+
+  // Mia's ad spend from 笔记投放数据 filtered by month AND Mia's note IDs
+  const miaNotesData=notesRows.filter(r=>{
+    const d=parseDate(r['时间']);
+    if(!d||!inRange(d,start,end)) return false;
+    return miaNoteIds.has((r['笔记/素材ID']||'').trim());
+  });
+  const miaSpend=miaNotesData.reduce((s,r)=>s+(parseFloat(r['消费'])||0),0);
+  const miaOpen=miaNotesData.reduce((s,r)=>s+(parseFloat(r['私信开口人数'])||0),0);
+  const miaLead=miaNotesData.reduce((s,r)=>s+(parseFloat(r['私信留资人数'])||0),0);
+
+  // Valid leads from Mia's notes via CRM (this month + note name matches)
+  const miaValid=crmRows.filter(r=>{
+    if(!isValid(r)) return false;
+    const d=parseDate(r['添加时间']);
+    if(!d||!inRange(d,start,end)) return false;
+    return miaNoteNames.has((r['小红书广告']||'').trim());
+  });
+
+  // All valid leads this month
+  const allMonthValid=crmRows.filter(r=>{
+    if(!isValid(r)) return false;
+    const d=parseDate(r['添加时间']);
+    return d&&inRange(d,start,end);
+  });
+  const yiduoValid=allMonthValid.filter(r=>!miaNoteNames.has((r['小红书广告']||'').trim()));
+
+  const openCostVal=miaOpen>0?miaSpend/miaOpen:null;
+  const leadCostVal=miaLead>0?miaSpend/miaLead:null;
+  const validCostVal=miaValid.length>0?miaSpend/miaValid.length:null;
+  const openOK=openCostVal!==null?openCostVal<=350:null;
+  const leadOK=leadCostVal!==null?leadCostVal<=550:null;
+  const validCountOK=miaValid.length>=30;
+  const validCostOK=validCostVal!==null?validCostVal<=1000:null;
+  const publishOK=miaNotes.length>=16;
+  const spendOK=miaSpend>=25000;
+
+  const okrItems=[
+    {label:'月均硬广开口成本',target:'目标 ≤¥350',actual:openCostVal?'¥'+openCostVal.toFixed(0):'暂无',ok:openOK,pct:openCostVal?Math.min(350/openCostVal*100,100):0},
+    {label:'月均硬广留资成本',target:'目标 ≤¥550',actual:leadCostVal?'¥'+leadCostVal.toFixed(0):'暂无',ok:leadOK,pct:leadCostVal?Math.min(550/leadCostVal*100,100):0},
+    {label:'月度有效 leads',target:'目标 ≥30 条',actual:miaValid.length+'条',ok:validCountOK,pct:Math.min(miaValid.length/30*100,100)},
+    {label:'Valid leads 成本',target:'目标 ≤¥1000',actual:validCostVal?'¥'+validCostVal.toFixed(0):'暂无',ok:validCostOK,pct:validCostVal?Math.min(1000/validCostVal*100,100):0},
+    {label:'月度发布笔记数',target:'目标 ≥16 篇',actual:miaNotes.length+'篇',ok:publishOK,pct:Math.min(miaNotes.length/16*100,100)},
+    {label:'广告总消费',target:'参考 ≥¥25000',actual:'¥'+miaSpend.toFixed(0),ok:spendOK,pct:Math.min(miaSpend/25000*100,100)},
+  ];
+
+  // Editable bonus form
+  const bonusId=id=>'bonus-'+id;
+  const miaRatio=allMonthValid.length>0?(miaValid.length/allMonthValid.length*100).toFixed(0):0;
+
+  document.getElementById('staff-body').innerHTML='<div class="grid-2">'
+  // Left: OKR + Bonus
+  +'<div>'
+  +'<div class="card" style="margin-bottom:14px"><div class="card-title">OKR 达标情况 — '+year+'年'+month+'月</div>'
+  +okrItems.map(item=>'<div class="okr-item"><div class="okr-label">'+item.label+'</div><div class="okr-target">'+item.target+'</div><div class="okr-actual" style="color:'+(item.ok===true?'var(--accent2)':item.ok===false?'var(--danger)':'var(--text3)')+'">'+item.actual+'</div><div class="okr-bar-wrap"><div class="okr-bar" style="width:'+item.pct.toFixed(0)+'%;background:'+(item.ok===true?'var(--accent2)':item.ok===false?'var(--danger)':'var(--accent3)')+'"></div></div><div style="width:54px;text-align:right;flex-shrink:0"><span class="badge '+(item.ok===true?'bv':item.ok===false?'bi':'bw')+'">'+(item.ok===true?'达标':item.ok===false?'未达':'待定')+'</span></div></div>').join('')
+  +'</div>'
+  +'<div class="bonus-card"><div class="card-title" style="margin-bottom:12px">奖金计算（可手动修改）</div>'
+  +'<div class="bonus-row"><span>渠道运营达标</span><input class="bonus-input" id="bonus-channel" type="number" value="'+(publishOK?500:0)+'" onchange="calcBonus()"> 元</div>'
+  +'<div class="bonus-row"><span>材料设计达标</span><input class="bonus-input" id="bonus-design" type="number" value="0" onchange="calcBonus()"> 元</div>'
+  +'<div class="bonus-row"><span>有效客资（'+miaValid.length+'条 × ¥<input class="bonus-input" id="bonus-per-lead" type="number" value="20" style="width:50px" onchange="calcBonus()">）</span><span id="bonus-leads-total">¥'+(miaValid.length*20)+'</span></div>'
+  +'<div class="bonus-row"><span>月度客资成本下降</span><input class="bonus-input" id="bonus-cost-drop" type="number" value="0" onchange="calcBonus()"> 元</div>'
+  +'<div class="bonus-row" style="font-weight:600;font-size:14px"><span>本月预计奖金</span><span id="bonus-total" style="color:var(--accent2);font-size:18px">¥'+(publishOK?500:0)+(miaValid.length*20)+'</span></div>'
+  +'<div style="font-size:11px;color:var(--text3);margin-top:8px">所有金额可手动调整</div>'
+  +'</div></div>'
+  // Right: Pie + Note list
+  +'<div>'
+  +'<div class="card" style="margin-bottom:14px"><div class="card-title">Valid Leads 归属（'+year+'年'+month+'月）</div>'
+  +'<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">'
+  +'<div style="flex:1">'
+  +'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>Mia 笔记</span><span style="color:var(--accent3);font-weight:600">'+miaValid.length+' 条</span></div>'
+  +'<div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:10px"><div style="width:'+miaRatio+'%;height:100%;background:var(--accent3);border-radius:4px"></div></div>'
+  +'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>Yiduo / 其他</span><span style="color:var(--accent);font-weight:600">'+yiduoValid.length+' 条</span></div>'
+  +'<div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="width:'+(100-parseInt(miaRatio))+'%;height:100%;background:var(--accent);border-radius:4px"></div></div>'
+  +'</div>'
+  +'<div style="text-align:center;padding:14px;background:var(--surface2);border-radius:10px;min-width:80px">'
+  +'<div style="font-size:22px;font-weight:600;color:var(--accent3)">'+miaRatio+'%</div>'
+  +'<div style="font-size:10px;color:var(--text3);margin-top:2px">Mia 贡献</div>'
+  +'</div></div>'
+  +'<div style="font-size:12px;color:var(--text3)">总Valid: '+allMonthValid.length+' | Mia消费: ¥'+miaSpend.toFixed(0)+' | 开口: '+miaOpen.toFixed(0)+' | 留资: '+miaLead.toFixed(0)+'</div>'
+  +'</div>'
+  +'<div class="card"><div class="card-title">Mia '+year+'年'+month+'月发布笔记（'+miaNotes.length+'篇）</div>'
+  +'<table class="tbl"><thead><tr><th>日期</th><th>主题</th><th>类型</th><th>状态</th><th>投放</th></tr></thead>'
+  +'<tbody>'+(miaNotes.length?miaNotes.map(r=>'<tr><td style="font-size:11px;color:var(--text3)">'+(r['发布日期']?fmtDate(parseDate(r['发布日期'])):'—')+'</td><td style="font-size:12px;color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(r['主题']||'')+'">'+(r['主题']||'').slice(0,18)+'</td><td style="font-size:11px">'+(r['类型']||'—').split(',')[0].trim()+'</td><td><span class="badge '+(r['任务完成状态']==='已发布'?'bv':'bw')+'">'+(r['任务完成状态']||'待发')+'</span></td><td style="font-size:10px;color:var(--text3)">'+(r['小红书笔记投放ID']&&r['小红书笔记投放ID']!=='N/A'?'投放中':'自然')+'</td></tr>').join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">本月暂无 Mia 的发布记录</td></tr>')+'</tbody></table>'
+  +'</div></div></div>';
+}
+
+function calcBonus() {
+  const channel=parseFloat(document.getElementById('bonus-channel').value)||0;
+  const design=parseFloat(document.getElementById('bonus-design').value)||0;
+  const perLead=parseFloat(document.getElementById('bonus-per-lead').value)||0;
+  const costDrop=parseFloat(document.getElementById('bonus-cost-drop').value)||0;
+  // Count mia valid leads from last generated staff report
+  const leadsTotal=parseFloat(document.getElementById('bonus-leads-total').textContent.replace('¥','').replace(/,/g,''))||0;
+  const newLeadsTotal=perLead*Math.round(leadsTotal/(parseFloat(document.getElementById('bonus-per-lead').value-0.0001)||20));
+  document.getElementById('bonus-leads-total').textContent='¥'+newLeadsTotal;
+  const total=channel+design+newLeadsTotal+costDrop;
+  document.getElementById('bonus-total').textContent='¥'+total;
+}
+
+// ── Chart helpers ─────────────────────────────────────────────────────────────
+function mkDoughnut(id,data,colors) {
+  if(charts[id]) charts[id].destroy();
+  const el=document.getElementById(id);
+  if(!el) return;
+  const labels=Object.keys(data),values=Object.values(data);
+  if(!labels.length) return;
+  charts[id]=new Chart(el,{
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:colors.slice(0,labels.length),borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9896a8',font:{size:11},boxWidth:10,padding:10}}}}
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  const now=new Date();
+  document.getElementById('month-pick').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('staff-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const sun=new Date(now);sun.setDate(now.getDate()-now.getDay());
+  document.getElementById('week-start').value=fmtDate(sun);
+  if(loadCfg()){nav('funnel');syncAll();}
+  else nav('setup');
+});
+</script>
+</body>
+</html>
